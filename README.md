@@ -10,6 +10,8 @@
   </ul>
 </p>
 <p>项目启动步骤
-  <li>conda安装依赖: conda env create -f environment.yml</li>
-  <li>本地启动服务: python code/UI.py</li>
+  <ol>
+    <li>conda安装依赖: conda env create -f environment.yml</li>
+    <li>本地启动服务: python code/UI.py</li>
+  </ol>
 </p>

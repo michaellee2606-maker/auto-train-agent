@@ -12,7 +12,7 @@ out_directory = os.environ.get("out_directory")
 
 def generate(file):
     if file is None:
-        return "No file uploaded."
+        raise gr.Error("No file uploaded!")
 
     autoTrain = AutoTrain(model_id, token)
 

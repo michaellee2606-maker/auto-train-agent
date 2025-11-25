@@ -16,7 +16,7 @@ def generate(file):
 
     autoTrain = AutoTrain(model_id, token)
 
-    autoTrain.start(file.name)
+    autoTrain.start(file.name, out_directory)
     
     files = [out_directory+"\\"+file 
                 for file in os.listdir(out_directory) 

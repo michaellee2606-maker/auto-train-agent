@@ -6,7 +6,7 @@ class AutoTrain:
         self.dataAnalysisAgent = DataAnalysisAgent(model_id, token)
         self.machineLearningAgent = MachineLearningAgent(model_id, token)
 
-    def start(self, data_path: str):
+    def start(self, data_path: str, out_directory: str):
         self.dataAnalysisAgent.analyze()
-        self.machineLearningAgent.train()
+        self.machineLearningAgent.train(data_path, out_directory)
    

@@ -14,6 +14,7 @@
     <li>conda安装依赖: conda env create -f environment.yml</li>
     <li>执行命令: conda activate agents_env</li>
     <li>将.env文件中的token配置替换为生成的token值</li>
+    <li>启动监控服务: python -m phoenix.server.main serve</li>
     <li>本地启动服务: python code/UI.py</li>
   </ol>
 </p>

@@ -1,3 +1,4 @@
 generatedFiles/
 .gradio/
+.venv/
 __pycache__/

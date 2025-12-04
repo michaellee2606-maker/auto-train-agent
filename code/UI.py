@@ -7,7 +7,7 @@ load_dotenv()
 
 model_id = os.environ.get("model_id")
 token = os.environ.get("token")
-out_directory = os.environ.get("out_directory")
+out_directory = "." + os.sep + os.environ.get("out_directory")
 
 
 def generate(file):
@@ -18,7 +18,7 @@ def generate(file):
 
     autoTrain.start(file.name, out_directory)
     
-    files = [out_directory+"\\"+file 
+    files = [out_directory + os.sep + file 
                 for file in os.listdir(out_directory) 
                     if os.path.isfile(os.path.join(out_directory, file))]
 

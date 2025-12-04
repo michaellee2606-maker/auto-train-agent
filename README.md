@@ -11,8 +11,9 @@
 </p>
 <p>项目启动步骤
   <ol>
-    <li>conda安装依赖: conda env create -f environment.yml</li>
-    <li>执行命令: conda activate agents_env</li>
+    <li>创建虚拟环境: python -m venv .venv</li>
+    <li>激活虚拟环境: source .venv/bin/activate</li>
+    <li>安装依赖: pip install -r requirements.txt</li>
     <li>将.env文件中的token配置替换为生成的token值</li>
     <li>启动监控服务: python -m phoenix.server.main serve</li>
     <li>本地启动服务: python code/UI.py</li>

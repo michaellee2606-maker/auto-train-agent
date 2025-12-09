@@ -45,4 +45,10 @@ with gr.Blocks() as demo:
     generate_button.click(fn=generate, inputs=[train_data, validate_data], outputs=output_file)
     
 
-demo.launch(allowed_paths=[out_directory])
+#demo.launch(allowed_paths=[out_directory])
+
+demo.launch(
+    allowed_paths=[out_directory],
+    server_name="0.0.0.0",  # 绑定所有网卡，而非仅127.0.0.1
+    server_port=7860        # 端口保持7860（可自定义，如8080）
+)

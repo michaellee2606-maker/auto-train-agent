@@ -9,15 +9,20 @@ model_id = os.environ.get("model_id")
 token = os.environ.get("token")
 out_directory = "." + os.sep + os.environ.get("out_directory")
 
+# Initialize AutoTrain agent
+autoTrain = AutoTrain(model_id, token)
 
-def generate(file):
-    if file is None:
-        raise gr.Error("No file uploaded!")
-
-    autoTrain = AutoTrain(model_id, token)
-
-    autoTrain.start(file.name, out_directory)
+def generate(train_data, validate_data_path):
+    if train_data is None:
+        raise gr.Error("请上传训练数据集!")
     
+    if validate_data_path is None:
+        raise gr.Error("请上传验证数据集!")
+
+    # Start training process
+    autoTrain.start(train_data.name, validate_data_path.name, out_directory)
+    
+    # Collect output files
     files = [out_directory + os.sep + file 
                 for file in os.listdir(out_directory) 
                     if os.path.isfile(os.path.join(out_directory, file))]
@@ -28,15 +33,16 @@ def generate(file):
 with gr.Blocks() as demo:
     gr.Markdown(
         """
-        # AutoTrain Agent
+        # 自动训练智能体
         <br>
-        Upload the data file, then click the Generate button, you will get a model!
+        请上传训练数据集和验证数据集，然后点击生成模型按钮，最终会生成模型和报告等相关文件!
         """
     )
-    input_file = gr.File(label="Data File", file_count="single")
-    generate_button = gr.Button("Generate")
-    output_file = gr.File(label="Generated Files", file_count="multiple")
-    generate_button.click(fn=generate, inputs=input_file, outputs=output_file)
+    train_data = gr.File(label="训练数据集", file_count="single")
+    validate_data = gr.File(label="验证数据集", file_count="single")
+    generate_button = gr.Button("生成模型")
+    output_file = gr.File(label="生成的文件", file_count="multiple")
+    generate_button.click(fn=generate, inputs=[train_data, validate_data], outputs=output_file)
     
 
 demo.launch(allowed_paths=[out_directory])

@@ -8,9 +8,10 @@ load_dotenv()
 model_id = os.environ.get("model_id")
 token = os.environ.get("token")
 out_directory = "." + os.sep + os.environ.get("out_directory")
+font_path = os.environ.get("font_path")
 
 # Initialize AutoTrain agent
-autoTrain = AutoTrain(model_id, token)
+autoTrain = AutoTrain(model_id, token, font_path)
 
 def generate(train_data, validate_data_path):
     if train_data is None:

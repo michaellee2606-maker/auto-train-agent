@@ -15,6 +15,9 @@
     <li>激活虚拟环境: source .venv/bin/activate</li>
     <li>安装依赖: pip install -r requirements.txt</li>
     <li>将.env文件中的token配置替换为生成的token值</li>
+    <li>安装中文字体库: sudo apt-get install fonts-noto-cjk</li>
+    <li>清除matplotlib缓存: rm -rf ~/.cache/matplotlib</li>
+    <li>将.env文件中的font_path配置替换为本地的中文字体库地址, 比如: font_path="/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"</li>
     <li>启动监控服务: python -m phoenix.server.main serve</li>
     <li>本地启动服务: python code/UI.py</li>
   </ol>

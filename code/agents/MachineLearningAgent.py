@@ -1,11 +1,14 @@
 import os
 import h2o
 import matplotlib.pyplot as plt
+from matplotlib import font_manager as fm
 from smolagents import CodeAgent, InferenceClientModel
 
 
 class MachineLearningAgent:
-    def __init__(self, model_id, token):
+    def __init__(self, model_id, token, font_path):
+        self.fontProps = fm.FontProperties(fname=font_path)
+        plt.rcParams['font.family'] = self.fontProps.get_name()
         self.model = InferenceClientModel(model_id=model_id, token=token)
         self.agent = CodeAgent(tools=[], model=self.model, additional_authorized_imports=["pandas","h2o.automl"])
     
@@ -45,14 +48,14 @@ class MachineLearningAgent:
                 loc='center', colLoc='center', cellLoc='center')
 
             # Add a title for the table
-            plt.title('Confusion Matrix', fontsize=14, fontweight='bold')
+            plt.title('混淆矩阵', fontsize=14, fontweight='bold', fontproperties=self.fontProps)
 
             # Calculate Precision and Recall
             precision = confusion_matrix.iloc[0, 1] / (confusion_matrix.iloc[0, 1] + confusion_matrix.iloc[1, 1])
-            recall = confusion_matrix.iloc[0, 1] / (confusion_matrix.iloc[0, 1] + confusion_matrix.iloc[0, 2])
+            recall = confusion_matrix.iloc[0, 2] / (confusion_matrix.iloc[0, 1] + confusion_matrix.iloc[0, 2])
 
             # Add Precision and Recall to the plot
-            plt.figtext(0.5, 0.01, f'Precision: {precision:.2f}, Recall: {recall:.2f}', wrap=True, horizontalalignment='center', fontsize=12)
+            plt.figtext(0.5, 0.01, f'坏客户识别准确率: {precision:.2f}, 坏客户误判率: {recall:.2f}', wrap=True, horizontalalignment='center', fontsize=12, fontproperties=self.fontProps)
 
             # Save the table as a PDF
             report_path = out_directory + os.sep + f'Report - {model}.pdf'

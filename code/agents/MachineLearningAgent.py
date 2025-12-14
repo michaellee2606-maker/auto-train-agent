@@ -9,8 +9,8 @@ class MachineLearningAgent:
         self.model = InferenceClientModel(model_id=model_id, token=token)
         self.agent = CodeAgent(tools=[], model=self.model, additional_authorized_imports=["pandas","h2o.automl"])
     
-    def train(self, train_data_path: str, out_directory: str):
-        self.agent.run(f"Get the train data file which is located at {train_data_path}" \
+    def train(self, train_feature_path: str, out_directory: str):
+        self.agent.run(f"Get the train data file which is located at {train_feature_path}" \
         "\n\n   Try to use the h2o package to solve problem:" \
         "\n\n       1. Import file using h2o.import_file" \
         "\n\n       2. Initialize h2o.automl.H2OAutoML, arguments of this function shown below:" \
@@ -23,8 +23,8 @@ class MachineLearningAgent:
         f"\n\n           - path: \"{out_directory}\", neither capital the first character nor add subdirectory"  \
         "\n\n           - get_genmodel_jar: True")
 
-    def generate_report(self, validate_data_path: str, out_directory: str):
-        validate_dataset = h2o.import_file(validate_data_path)
+    def generate_report(self, validate_feature_path: str, out_directory: str):
+        validate_dataset = h2o.import_file(validate_feature_path)
         models = [file for file in os.listdir(out_directory) if file.endswith(".zip")]
 
         for model in models:

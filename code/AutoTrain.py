@@ -15,7 +15,7 @@ class AutoTrain:
         self.machineLearningAgent = MachineLearningAgent(model_id, token)
 
     def start(self, train_data_path: str, validate_data_path: str, out_directory: str):
-        # self.dataAnalysisAgent.analyze()
-        self.machineLearningAgent.train(train_data_path, out_directory)
-        self.machineLearningAgent.generate_report(validate_data_path, out_directory)
+        train_feature_path, validate_feature_path = self.dataAnalysisAgent.analyze(train_data_path, validate_data_path)
+        self.machineLearningAgent.train(train_feature_path, out_directory)
+        self.machineLearningAgent.generate_report(validate_feature_path, out_directory)
    

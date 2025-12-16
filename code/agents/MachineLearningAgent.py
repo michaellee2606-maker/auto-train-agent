@@ -27,16 +27,16 @@ class MachineLearningAgent:
         "\n\n           - get_genmodel_jar: True")
 
     def generate_report(self, validate_feature_path: str, out_directory: str):
-        validate_dataset = h2o.import_file(validate_feature_path)
+        validate_features = h2o.import_file(validate_feature_path)
         models = [file for file in os.listdir(out_directory) if file.endswith(".zip")]
 
         for model in models:
             model_path = out_directory + os.sep + model
             imported_model = h2o.import_mojo(model_path)
 
-            validate_result = imported_model.predict(validate_dataset)
+            validate_result = imported_model.predict(validate_features)
 
-            combined_result = validate_result['predict'].cbind(validate_dataset['class'])
+            combined_result = validate_result['predict'].cbind(validate_features['class'])
             grouped_result = combined_result.group_by(['predict', 'class']).count().get_frame()
             pivot_result = grouped_result.pivot(index='class', column='predict', value='nrow')
             confusion_matrix = pivot_result.as_data_frame(use_pandas=True, header=True, use_multi_thread=True)

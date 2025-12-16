@@ -13,15 +13,15 @@ font_path = os.environ.get("font_path")
 # Initialize AutoTrain agent
 autoTrain = AutoTrain(model_id, token, font_path)
 
-def generate(train_data, validate_data_path):
+def generate(train_data, validate_data):
     if train_data is None:
         raise gr.Error("请上传训练数据集!")
     
-    if validate_data_path is None:
+    if validate_data is None:
         raise gr.Error("请上传验证数据集!")
 
     # Start training process
-    autoTrain.start(train_data.name, validate_data_path.name, out_directory)
+    autoTrain.start(train_data.name, validate_data.name, out_directory)
     
     # Collect output files
     files = [out_directory + os.sep + file 

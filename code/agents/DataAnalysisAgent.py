@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.preprocessing import StandardScaler, OrdinalEncoder
 from smolagents import CodeAgent, InferenceClientModel
 
 class DataAnalysisAgent:
@@ -19,7 +19,7 @@ class DataAnalysisAgent:
         preprocessor = ColumnTransformer(
             transformers=[
                 ('num', StandardScaler(), numerical_features),
-                ('cat', OneHotEncoder(), categorical_features)
+                ('cat', OrdinalEncoder(), categorical_features)
             ])
         
         features_processed = preprocessor.fit_transform(data)

@@ -2,6 +2,8 @@ import os
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OrdinalEncoder
+from sklearn.feature_selection import SelectPercentile, f_classif, chi2
+from sklearn.pipeline import Pipeline
 from smolagents import CodeAgent, InferenceClientModel
 
 class DataAnalysisAgent:
@@ -11,18 +13,34 @@ class DataAnalysisAgent:
 
 
     def process_data(self, data: pd.DataFrame, class_column_name: str) -> pd.DataFrame:
+        # Handle missing values by dropping rows with any missing values
+        data = data.dropna()
+
         class_column = data.pop(class_column_name)
 
         numerical_features = data.select_dtypes(include=['int64', 'float64']).columns
+        numerical_transformer = Pipeline(
+            steps=[
+                ('scaler', StandardScaler()),
+                ('numerical_selector', SelectPercentile(score_func=f_classif, percentile=80))
+            ]
+        )
+
         categorical_features = data.select_dtypes(include=['object', 'category']).columns
+        categorical_transformer = Pipeline(
+            steps=[
+                ('encoder', OrdinalEncoder()),
+                ('categorical_selector', SelectPercentile(score_func=chi2, percentile=80))
+            ]
+        )
         
         preprocessor = ColumnTransformer(
             transformers=[
-                ('num', StandardScaler(), numerical_features),
-                ('cat', OrdinalEncoder(), categorical_features)
+                ('num', numerical_transformer, numerical_features),
+                ('cat', categorical_transformer, categorical_features)
             ])
         
-        features_processed = preprocessor.fit_transform(data)
+        features_processed = preprocessor.fit_transform(data, class_column)
         
         features_df = pd.DataFrame(features_processed, columns=preprocessor.get_feature_names_out())
         

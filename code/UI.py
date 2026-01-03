@@ -9,9 +9,12 @@ model_id = os.environ.get("model_id")
 token = os.environ.get("token")
 out_directory = "." + os.sep + os.environ.get("out_directory")
 font_path = os.environ.get("font_path")
+class_column= os.environ.get("class_column")
+postive_class= os.environ.get("postive_class")
+negative_class= os.environ.get("negative_class")
 
 # Initialize AutoTrain agent
-autoTrain = AutoTrain(model_id, token, font_path)
+autoTrain = AutoTrain(model_id, token, font_path, class_column, postive_class, negative_class)
 
 def generate(train_data, validate_data):
     if train_data is None:

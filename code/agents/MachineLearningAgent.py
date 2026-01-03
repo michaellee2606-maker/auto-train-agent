@@ -6,28 +6,32 @@ from smolagents import CodeAgent, InferenceClientModel
 
 
 class MachineLearningAgent:
-    def __init__(self, model_id, token, font_path):
+    def __init__(self, model_id, token, font_path, class_column):
         self.fontProps = fm.FontProperties(fname=font_path)
         plt.rcParams['font.family'] = self.fontProps.get_name()
         self.model = InferenceClientModel(model_id=model_id, token=token)
         self.agent = CodeAgent(tools=[], model=self.model, additional_authorized_imports=["pandas","h2o.automl"])
+        self.class_column = class_column
     
     def train(self, train_feature_path: str, out_directory: str):
         self.agent.run(f"Get the train data file which is located at {train_feature_path}" \
         "\n\n   Try to use the h2o package to solve problem:" \
         "\n\n       1. Import file using h2o.import_file" \
-        "\n\n       2. Initialize h2o.automl.H2OAutoML, arguments of this function shown below:" \
+        "\n\n       2. Convert the type of {self.class_column} column to factors" \
+        "\n\n       3. Initialize h2o.automl.H2OAutoML, arguments of this function shown below:" \
         "\n\n           - max_models: 1" \
         "\n\n           - seed: 1" \
-        "\n\n       3. Train and validate supervised models using data acquired by previous step via h2o.automl.H2OAutoML.train, arguments of this function shown below:" \
-        "\n\n           - y: \"class\", do not capital the first character"  \
-        "\n\n       4. Display the AutoML Leaderboard" \
-        "\n\n       5. Save the leader model using download_mojo function, arguments of this function shown below:" \
+        "\n\n       4. Train and validate supervised models using data acquired by previous step via h2o.automl.H2OAutoML.train, arguments of this function shown below:" \
+        "\n\n           - y: \"{self.class_column}\", do not capital the first character"  \
+        "\n\n       5. Display the AutoML Leaderboard" \
+        "\n\n       6. Save the leader model using download_mojo function, arguments of this function shown below:" \
         f"\n\n           - path: \"{out_directory}\", neither capital the first character nor add subdirectory"  \
         "\n\n           - get_genmodel_jar: True")
 
     def generate_report(self, validate_feature_path: str, out_directory: str):
         validate_features = h2o.import_file(validate_feature_path)
+        actual = validate_features.pop(self.class_column).asfactor()
+
         models = [file for file in os.listdir(out_directory) if file.endswith(".zip")]
 
         for model in models:
@@ -36,9 +40,9 @@ class MachineLearningAgent:
 
             validate_result = imported_model.predict(validate_features)
 
-            combined_result = validate_result['predict'].cbind(validate_features['class'])
-            grouped_result = combined_result.group_by(['predict', 'class']).count().get_frame()
-            pivot_result = grouped_result.pivot(index='class', column='predict', value='nrow')
+            combined_result = validate_result['predict'].cbind(actual)
+            grouped_result = combined_result.group_by(['predict', self.class_column]).count().get_frame()
+            pivot_result = grouped_result.pivot(index=self.class_column, column='predict', value='nrow')
             confusion_matrix = pivot_result.as_data_frame(use_pandas=True, header=True, use_multi_thread=True)
             
             fig, ax = plt.subplots()

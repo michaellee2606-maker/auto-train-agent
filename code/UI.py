@@ -10,11 +10,11 @@ token = os.environ.get("token")
 out_directory = "." + os.sep + os.environ.get("out_directory")
 font_path = os.environ.get("font_path")
 class_column= os.environ.get("class_column")
-postive_class= os.environ.get("postive_class")
+positive_class= os.environ.get("positive_class")
 negative_class= os.environ.get("negative_class")
 
 # Initialize AutoTrain agent
-autoTrain = AutoTrain(model_id, token, font_path, class_column, postive_class, negative_class)
+autoTrain = AutoTrain(model_id, token, font_path, class_column, positive_class, negative_class)
 
 def generate(train_data, validate_data):
     if train_data is None:
@@ -53,6 +53,6 @@ with gr.Blocks() as demo:
 
 demo.launch(
     allowed_paths=[out_directory],
-    server_name="0.0.0.0",  # 绑定所有网卡，而非仅127.0.0.1
+    server_name="127.0.0.1",  # 绑定所有网卡，而非仅127.0.0.1
     server_port=7860        # 端口保持7860（可自定义，如8080）
 )

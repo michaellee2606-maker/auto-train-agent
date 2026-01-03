@@ -5,7 +5,7 @@ from agents.DataAnalysisAgent import DataAnalysisAgent
 from agents.MachineLearningAgent import MachineLearningAgent
 
 class AutoTrain:
-    def __init__(self, model_id, token, font_path, class_column, postive_class, negative_class):
+    def __init__(self, model_id, token, font_path, class_column, positive_class, negative_class):
         # Initialize telemetry instrumentation
         register()
         SmolagentsInstrumentor().instrument()
@@ -13,7 +13,7 @@ class AutoTrain:
         # Initialize H2O
         h2o.init()
 
-        self.dataAnalysisAgent = DataAnalysisAgent(model_id, token, class_column, postive_class, negative_class)
+        self.dataAnalysisAgent = DataAnalysisAgent(model_id, token, class_column, positive_class, negative_class)
         self.machineLearningAgent = MachineLearningAgent(model_id, token, font_path, class_column)
 
     def start(self, train_data_path: str, validate_data_path: str, out_directory: str):

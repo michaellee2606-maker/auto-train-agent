@@ -8,11 +8,11 @@ from sklearn.pipeline import Pipeline
 from smolagents import CodeAgent, InferenceClientModel
 
 class DataAnalysisAgent:
-    def __init__(self, model_id, token, class_column, postive_class, negative_class):
+    def __init__(self, model_id, token, class_column, positive_class, negative_class):
         self.model = InferenceClientModel(model_id=model_id, token=token)
         self.agent = CodeAgent(tools=[], model=self.model, additional_authorized_imports=["pandas"])
         self.class_column = class_column
-        self.postive_class = postive_class
+        self.positive_class = positive_class
         self.negative_class = negative_class
         self.preprocessor = None
 
@@ -95,7 +95,7 @@ class DataAnalysisAgent:
         # Handle missing values by dropping rows with any missing values
         data = data.dropna()
 
-        classes = data.pop(self.class_column).map({self.postive_class: 1, self.negative_class: 0}).astype('category')
+        classes = data.pop(self.class_column).map({self.positive_class: 1, self.negative_class: 0}).astype('category')
 
         features_processed, columns = self.transform_data(data, classes, train_flag)
         

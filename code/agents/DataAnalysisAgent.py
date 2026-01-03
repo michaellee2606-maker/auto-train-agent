@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import StandardScaler, OrdinalEncoder
+from sklearn.preprocessing import KBinsDiscretizer, OrdinalEncoder
 from sklearn.feature_selection import SelectPercentile, f_classif, chi2
 from sklearn.pipeline import Pipeline
 from smolagents import CodeAgent, InferenceClientModel
@@ -10,6 +10,8 @@ class DataAnalysisAgent:
     def __init__(self, model_id, token):
         self.model = InferenceClientModel(model_id=model_id, token=token)
         self.agent = CodeAgent(tools=[], model=self.model, additional_authorized_imports=["pandas"])
+        self.numerical_transformer = None
+        self.categorical_transformer = None
 
 
     def process_data(self, data: pd.DataFrame, class_column_name: str) -> pd.DataFrame:
@@ -19,25 +21,29 @@ class DataAnalysisAgent:
         class_column = data.pop(class_column_name)
 
         numerical_features = data.select_dtypes(include=['int64', 'float64']).columns
-        numerical_transformer = Pipeline(
-            steps=[
-                ('scaler', StandardScaler()),
-                ('numerical_selector', SelectPercentile(score_func=f_classif, percentile=80))
-            ]
-        )
+
+        if self.numerical_transformer is None:
+            self.numerical_transformer = Pipeline(
+                steps=[
+                    ('discretizer', KBinsDiscretizer(n_bins=10, encode='ordinal', strategy='quantile')),
+                    ('numerical_selector', SelectPercentile(score_func=f_classif, percentile=80))
+                ]
+            )
 
         categorical_features = data.select_dtypes(include=['object', 'category']).columns
-        categorical_transformer = Pipeline(
-            steps=[
-                ('encoder', OrdinalEncoder()),
-                ('categorical_selector', SelectPercentile(score_func=chi2, percentile=80))
-            ]
-        )
+
+        if self.categorical_transformer is None:
+            self.categorical_transformer = Pipeline(
+                steps=[
+                    ('encoder', OrdinalEncoder()),
+                    ('categorical_selector', SelectPercentile(score_func=chi2, percentile=80))
+                ]
+            )
         
         preprocessor = ColumnTransformer(
             transformers=[
-                ('num', numerical_transformer, numerical_features),
-                ('cat', categorical_transformer, categorical_features)
+                ('num', self.numerical_transformer, numerical_features),
+                ('cat', self.categorical_transformer, categorical_features)
             ])
         
         features_processed = preprocessor.fit_transform(data, class_column)

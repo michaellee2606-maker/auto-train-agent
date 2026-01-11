@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
+from imblearn.over_sampling import RandomOverSampler
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import KBinsDiscretizer, OrdinalEncoder
 from sklearn.feature_selection import SelectPercentile, f_classif, chi2
@@ -96,6 +97,11 @@ class DataAnalysisAgent:
         data = data.dropna()
 
         classes = data.pop(self.class_column).map({self.positive_class: 1, self.negative_class: 0}).astype('category')
+
+        # Handle class imbalance using RandomOverSampler when training
+        if train_flag:
+            imbalanced_sampler = RandomOverSampler(random_state=42)
+            data, classes = imbalanced_sampler.fit_resample(data, classes)
 
         features_processed, columns = self.transform_data(data, classes, train_flag)
         

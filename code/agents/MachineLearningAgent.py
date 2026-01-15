@@ -25,7 +25,7 @@ class MachineLearningAgent:
         "\n\n           - y: \"{self.class_column}\", do not capital the first character"  \
         "\n\n       5. Display the AutoML Leaderboard" \
         "\n\n       6. Save the leader model using download_mojo function, arguments of this function shown below:" \
-        f"\n\n           - path: \"{out_directory}\", neither capital the first character nor add subdirectory"  \
+        f"\n\n           - path: \"{out_directory}\", neither capital the first character nor add any subdirectory"  \
         "\n\n           - get_genmodel_jar: True")
 
     def generate_report(self, validate_feature_path: str, out_directory: str):

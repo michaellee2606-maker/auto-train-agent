@@ -56,10 +56,10 @@ class MachineLearningAgent:
 
             # Calculate Precision and Recall
             precision = confusion_matrix.iloc[0, 1] / (confusion_matrix.iloc[0, 1] + confusion_matrix.iloc[1, 1])
-            recall = confusion_matrix.iloc[0, 2] / (confusion_matrix.iloc[0, 1] + confusion_matrix.iloc[0, 2])
+            recall = confusion_matrix.iloc[0, 1] / (confusion_matrix.iloc[0, 1] + confusion_matrix.iloc[0, 2])
 
             # Add Precision and Recall to the plot
-            plt.figtext(0.5, 0.01, f'坏客户识别准确率: {precision:.2f}, 坏客户误判率: {recall:.2f}', wrap=True, horizontalalignment='center', fontsize=12, fontproperties=self.fontProps)
+            plt.figtext(0.5, 0.01, f'召回率: {recall:.2f}, 精确率: {precision:.2f}', wrap=True, horizontalalignment='center', fontsize=12, fontproperties=self.fontProps)
 
             # Save the table as a PDF
             report_path = out_directory + os.sep + f'Report - {model}.pdf'

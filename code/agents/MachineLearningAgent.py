@@ -1,5 +1,6 @@
 import os
 import h2o
+from h2o.estimators import H2OXGBoostEstimator
 import matplotlib.pyplot as plt
 from matplotlib import font_manager as fm
 from smolagents import CodeAgent, InferenceClientModel
@@ -14,19 +15,32 @@ class MachineLearningAgent:
         self.class_column = class_column
     
     def train(self, train_feature_path: str, out_directory: str):
-        self.agent.run(f"Get the train data file which is located at {train_feature_path}" \
-        "\n\n   Try to use the h2o package to solve problem:" \
-        "\n\n       1. Import file using h2o.import_file" \
-        "\n\n       2. Convert the type of {self.class_column} column to factors" \
-        "\n\n       3. Initialize h2o.automl.H2OAutoML, arguments of this function shown below:" \
-        "\n\n           - max_models: 1" \
-        "\n\n           - seed: 1" \
-        "\n\n       4. Train and validate supervised models using data acquired by previous step via h2o.automl.H2OAutoML.train, arguments of this function shown below:" \
-        "\n\n           - y: \"{self.class_column}\", do not capital the first character"  \
-        "\n\n       5. Display the AutoML Leaderboard" \
-        "\n\n       6. Save the leader model using download_mojo function, arguments of this function shown below:" \
-        f"\n\n           - path: \"{out_directory}\", neither capital the first character nor add any subdirectory"  \
-        "\n\n           - get_genmodel_jar: True")
+        train_features = h2o.import_file(train_feature_path)
+        train_features[self.class_column] = train_features[self.class_column].asfactor()
+
+        xgboost_model = H2OXGBoostEstimator(
+            booster='gbtree',
+            backend='cpu',
+            dmatrix_type='dense',
+            tree_method='hist',
+            nfolds=5,
+            ntrees=60,
+            max_depth=6,
+            min_rows=3,
+            min_split_improvement=1e-3,
+            reg_alpha=1e-2,
+            reg_lambda=1.0,
+            learn_rate=0.05,
+            stopping_metric='AUCPR',
+            stopping_rounds=5,
+            stopping_tolerance=1e-3,
+            score_tree_interval=4,
+            seed=0
+        )
+
+        xgboost_model.train(y=self.class_column, training_frame=train_features)
+
+        xgboost_model.download_mojo(path=out_directory, get_genmodel_jar=True)
 
     def generate_report(self, validate_feature_path: str, out_directory: str):
         validate_features = h2o.import_file(validate_feature_path)

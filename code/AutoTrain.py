@@ -20,7 +20,7 @@ class AutoTrain:
         # Data analysis and feature extraction
         train_feature_path, validate_feature_path = self.dataAnalysisAgent.analyze(train_data_path, validate_data_path)
         # Machine learning model training
-        self.machineLearningAgent.train(train_feature_path, out_directory)
+        self.machineLearningAgent.train(train_feature_path, validate_feature_path, out_directory)
         # Generate report
-        self.machineLearningAgent.generate_report(validate_feature_path, out_directory)
+        self.machineLearningAgent.generate_report(out_directory)
    

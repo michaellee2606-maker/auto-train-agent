@@ -1,5 +1,6 @@
 import os
 import h2o
+import logging
 from h2o.estimators import H2OXGBoostEstimator
 from h2o.grid.grid_search import H2OGridSearch
 import matplotlib.pyplot as plt
@@ -9,6 +10,8 @@ from smolagents import CodeAgent, InferenceClientModel
 
 class MachineLearningAgent:
     def __init__(self, model_id, token, font_path, class_column):
+        logging.basicConfig(level=logging.INFO)
+        self.logger = logging.getLogger(__name__)
         self.fontProps = fm.FontProperties(fname=font_path)
         plt.rcParams['font.family'] = self.fontProps.get_name()
         self.model = InferenceClientModel(model_id=model_id, token=token)
@@ -83,6 +86,8 @@ class MachineLearningAgent:
 
             # Calculate F2 Score
             f2_score = (5 * precision * recall) / (4 * precision + recall)
+
+            self.logger.info(f"Model: {xgboost_model.model_id}, Threshold: {threshold}, Precision: {precision:.4f}, Recall: {recall:.4f}, F2 Score: {f2_score:.4f}")
 
             if f2_score > self.max_f2_score:
                 self.max_f2_score = f2_score 

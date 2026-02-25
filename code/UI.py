@@ -53,6 +53,6 @@ with gr.Blocks() as demo:
 
 demo.launch(
     allowed_paths=[out_directory],
-    server_name="127.0.0.1",  # 绑定所有网卡，而非仅127.0.0.1
+    server_name="0.0.0.0",  # 绑定所有网卡，而非仅127.0.0.1
     server_port=7860        # 端口保持7860（可自定义，如8080）
 )

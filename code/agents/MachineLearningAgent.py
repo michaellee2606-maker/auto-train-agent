@@ -5,7 +5,9 @@ from h2o.estimators import H2OXGBoostEstimator
 from h2o.grid.grid_search import H2OGridSearch
 import matplotlib.pyplot as plt
 from matplotlib import font_manager as fm
-from smolagents import CodeAgent, InferenceClientModel
+from langchain.agents import create_agent
+from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+from responseModels.XGBoostResponse import XGBoostResponse
 
 
 class MachineLearningAgent:
@@ -14,8 +16,6 @@ class MachineLearningAgent:
         self.logger = logging.getLogger(__name__)
         self.fontProps = fm.FontProperties(fname=font_path)
         plt.rcParams['font.family'] = self.fontProps.get_name()
-        self.model = InferenceClientModel(model_id=model_id, token=token)
-        self.agent = CodeAgent(tools=[], model=self.model, additional_authorized_imports=["pandas","h2o.automl"])
         self.class_column = class_column
         self.best_xgboost_model = None
         self.max_f2_score = 0
@@ -23,6 +23,33 @@ class MachineLearningAgent:
         self.confusion_matrix = None
         self.recall = 0
         self.precision = 0
+        self.agent = self.init_agent(model_id, token)
+
+    def init_agent(self, model_id, token):
+        llm = HuggingFaceEndpoint(
+            task='conversational',
+            repo_id=model_id,
+            max_new_tokens=1280,
+            temperature=0.5,
+            huggingfacehub_api_token=token,
+            provider="auto",
+        )
+
+        chat = ChatHuggingFace(llm=llm)
+
+        agent = create_agent(
+            model=chat,
+            tools=[],
+            system_prompt="""
+                You are a professional machine learning assistant.
+                The business problem is to predict the class of customers based on the customer data. This is a binary classification problem. 
+                The response should conform to the corresponding response format.
+            """,
+            response_format=XGBoostResponse
+        )
+
+        return agent
+
     
     def train(self, train_feature_path: str, validate_feature_path: str, out_directory: str):
         train_features = h2o.import_file(train_feature_path)
@@ -30,27 +57,18 @@ class MachineLearningAgent:
         validate_features = h2o.import_file(validate_feature_path)
         actual = validate_features.pop(self.class_column).asfactor()
 
-        xgboost_params = {
-            'backend': 'auto',
-            'dmatrix_type': 'dense',
-            'tree_method': 'hist',
-            'booster': ['gbtree', 'dart'],
-            'ntrees': [60, 120, 150],
-            'max_depth': [6, 11, 15],
-            'min_rows': [3, 5],
-            'reg_alpha': [0.001, 0.01, 0.1],
-            'reg_lambda': [0.001, 0.01, 0.1],
-            'learn_rate': [0.001, 0.01, 0.1]
-        }
+        # Run the agent
+        response = self.agent.invoke(
+            {"messages": [{"role": "user", "content": "Generate the hyperparameters and search criteria of XGBoost algorithms of H2OGridSearch API."}]}
+        )
 
-        search_criteria = {
-            'strategy': 'RandomDiscrete',
-            'max_models': 20,
-            'seed': 0,
-            'stopping_metric': 'AUCPR',
-            'stopping_tolerance': 0.05,
-            'stopping_rounds': 5
-        }
+        xgboost_response_json = XGBoostResponse.model_dump(response["structured_response"])
+
+        xgboost_params = xgboost_response_json.get("hyperparameters")
+        self.logger.info(f"XGBoost hyperparameters: {xgboost_params}")
+
+        search_criteria = xgboost_response_json.get("search_criteria")
+        self.logger.info(f"XGBoost search criteria: {search_criteria}")
 
         xgboost_grid = H2OGridSearch(
             grid_id='xgboost_grid',

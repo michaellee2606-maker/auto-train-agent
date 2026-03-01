@@ -7,7 +7,6 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import KBinsDiscretizer, OrdinalEncoder
 from sklearn.feature_selection import SelectPercentile, f_classif, chi2
 from sklearn.pipeline import Pipeline
-from smolagents import CodeAgent, InferenceClientModel
 from sklearn.ensemble import GradientBoostingClassifier
 from mlxtend.feature_selection import ExhaustiveFeatureSelector as EFS
 
@@ -15,8 +14,6 @@ class DataAnalysisAgent:
     def __init__(self, model_id, token, class_column, positive_class, negative_class):
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
-        self.model = InferenceClientModel(model_id=model_id, token=token)
-        self.agent = CodeAgent(tools=[], model=self.model, additional_authorized_imports=["pandas"])
         self.class_column = class_column
         self.positive_class = positive_class
         self.negative_class = negative_class

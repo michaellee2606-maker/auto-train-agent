@@ -1,15 +1,9 @@
 import h2o
-from phoenix.otel import register
-from openinference.instrumentation.smolagents import SmolagentsInstrumentor
 from agents.DataAnalysisAgent import DataAnalysisAgent
 from agents.MachineLearningAgent import MachineLearningAgent
 
 class AutoTrain:
-    def __init__(self, model_id, token, font_path, class_column, positive_class, negative_class):
-        # Initialize telemetry instrumentation
-        register()
-        SmolagentsInstrumentor().instrument()
-        
+    def __init__(self, model_id, token, font_path, class_column, positive_class, negative_class):        
         # Initialize H2O
         h2o.init()
 

@@ -5,8 +5,8 @@
   <ul>
     <li>语言: python</li>
     <li>前端页面框架: gradio</li>
-    <li>智能体框架: smolagents</li>
-    <li>模型: Qwen/Qwen2.5-Coder-32B-Instruct</li>
+    <li>智能体框架: langChain</li>
+    <li>模型: Qwen/Qwen2.5-7B-Instruct</li>
   </ul>
 </p>
 <p>项目启动步骤
@@ -25,3 +25,4 @@
     <li>本地启动服务: python code/UI.py</li>
   </ol>
 </p>
+

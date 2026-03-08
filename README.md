@@ -26,7 +26,15 @@ Environment="HTTPS_PROXY=http://proxy_ip:proxy_port"<br/>
 Environment="NO_PROXY=localhost,127.0.0.1"
     </li>
     <li>执行命令: systemctl start docker</li>
-    <li>在langfuse文件夹下执行命令: docker compose up</li>
+    <li>在langfuse文件夹下执行命令: sudo docker compose up</li>
+    <li>Langfuse启动成功后，
+      <ol>
+        <li>创建对应的项目</li>
+        <li>Settings面板中创建API Keys</li>
+        <li>将.env文件中的LANGFUSE_SECRET_KEY配置替换为生成的LANGFUSE_SECRET_KEY值</li>
+        <li>将.env文件中的LANGFUSE_PUBLIC_KEY配置替换为生成的LANGFUSE_PUBLIC_KEY值</li>
+      </ol>
+    </li>
     <li>将.env文件中的token配置替换为生成的token值</li>
     <li>将.env文件中的class_column配置替换为数据文件中的预测列的名称</li>
     <li>将.env文件中的positive_class配置替换为数据文件中表示坏客户的值</li>
@@ -37,5 +45,6 @@ Environment="NO_PROXY=localhost,127.0.0.1"
     <li>本地启动服务: python code/UI.py</li>
   </ol>
 </p>
+
 
 

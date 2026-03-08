@@ -5,6 +5,7 @@ from h2o.estimators import H2OXGBoostEstimator
 from h2o.grid.grid_search import H2OGridSearch
 import matplotlib.pyplot as plt
 from matplotlib import font_manager as fm
+from langfuse.langchain import CallbackHandler
 from langchain.agents import create_agent
 from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
 from responseModels.XGBoostResponse import XGBoostResponse
@@ -23,6 +24,7 @@ class MachineLearningAgent:
         self.confusion_matrix = None
         self.recall = 0
         self.precision = 0
+        self.langfuse_handler = CallbackHandler()
         self.agent = self.init_agent(model_id, token)
 
     def init_agent(self, model_id, token):
@@ -59,7 +61,8 @@ class MachineLearningAgent:
 
         # Run the agent
         response = self.agent.invoke(
-            {"messages": [{"role": "user", "content": "Generate the hyperparameters and search criteria of XGBoost algorithms of H2OGridSearch API."}]}
+            {"messages": [{"role": "user", "content": "Generate the hyperparameters and search criteria of XGBoost algorithms of H2OGridSearch API."}]}, 
+            config={"callbacks": [self.langfuse_handler]}
         )
 
         xgboost_response_json = XGBoostResponse.model_dump(response["structured_response"])

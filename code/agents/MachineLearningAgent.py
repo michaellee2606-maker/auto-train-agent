@@ -1,6 +1,9 @@
 import os
 import h2o
+import base64
 import logging
+from PIL import Image
+from io import BytesIO
 from h2o.estimators import H2OXGBoostEstimator
 from h2o.grid.grid_search import H2OGridSearch
 import matplotlib.pyplot as plt
@@ -124,22 +127,38 @@ class MachineLearningAgent:
         confusion_matrix = self.confusion_matrix
         model = self.best_xgboost_model.model_id
 
-        fig, ax = plt.subplots()
-        ax.axis('tight')
-        ax.axis('off')
-        ax.table(cellText=confusion_matrix.values, colLabels=confusion_matrix.columns, 
-            loc='center', colLoc='center', cellLoc='center')
+        # Create a figure with subplots to accommodate the confusion matrix and images
+        fig, axs = plt.subplots(3, 1, figsize=(8, 12))  # 3 rows: confusion matrix + 2 images
+        axs[0].axis('tight')
+        axs[0].axis('off')
+        axs[0].table(cellText=confusion_matrix.values, colLabels=confusion_matrix.columns, 
+                     loc='center', colLoc='center', cellLoc='center')
 
         # Add a title for the table
-        plt.title('混淆矩阵', fontsize=14, fontweight='bold', fontproperties=self.fontProps)
+        axs[0].set_title('混淆矩阵', fontsize=14, fontweight='bold', fontproperties=self.fontProps)
 
         # Calculate Precision and Recall
         precision = confusion_matrix.iloc[1, 2] / (confusion_matrix.iloc[0, 2] + confusion_matrix.iloc[1, 2])
         recall = confusion_matrix.iloc[1, 2] / (confusion_matrix.iloc[1, 1] + confusion_matrix.iloc[1, 2])
 
-        # Add Precision and Recall to the plot
-        plt.figtext(0.5, 0.01, f'召回率: {recall:.2f}, 精确率: {precision:.2f}', wrap=True, horizontalalignment='center', fontsize=12, fontproperties=self.fontProps)
+        # Adjust the position of the text to be closer to the confusion matrix
+        fig.text(0.5, 0.7, f'召回率: {recall:.2f}, 精确率: {precision:.2f}', wrap=True, horizontalalignment='center', fontsize=12, fontproperties=self.fontProps)
 
-        # Save the table as a PDF
+        # Decode and add the PNG images from reports_dict
+        if 'Numerical Feature Univariate Score' in reports_dict:
+            numerical_image_data = base64.b64decode(reports_dict['Numerical Feature Univariate Score'])
+            numerical_image = Image.open(BytesIO(numerical_image_data))
+            axs[1].imshow(numerical_image)
+            axs[1].axis('off')  # Hide axes for the image
+            axs[1].set_title("Numerical Feature Univariate Score", fontsize=10, fontproperties=self.fontProps)
+        if 'Categorical Feature Univariate Score' in reports_dict:
+            categorical_image_data = base64.b64decode(reports_dict['Categorical Feature Univariate Score'])
+            categorical_image = Image.open(BytesIO(categorical_image_data))
+            axs[2].imshow(categorical_image)
+            axs[2].axis('off')  # Hide axes for the image
+            axs[2].set_title("Categorical Feature Univariate Score", fontsize=10, fontproperties=self.fontProps)
+
+        # Save the complete report as a PDF
         report_path = out_directory + os.sep + f'Report - {model}.pdf'
+        plt.tight_layout()
         plt.savefig(report_path)

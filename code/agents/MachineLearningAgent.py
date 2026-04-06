@@ -142,7 +142,7 @@ class MachineLearningAgent:
         recall = confusion_matrix.iloc[1, 2] / (confusion_matrix.iloc[1, 1] + confusion_matrix.iloc[1, 2])
 
         # Adjust the position of the text to be closer to the confusion matrix
-        fig.text(0.5, 0.7, f'召回率: {recall:.2f}, 精确率: {precision:.2f}', wrap=True, horizontalalignment='center', fontsize=12, fontproperties=self.fontProps)
+        fig.text(0.5, 0.7, f'召回率: {recall:.2f}, 精确率: {precision:.2f}', wrap=True, horizontalalignment='center', fontsize=8, fontproperties=self.fontProps)
 
         # Decode and add the PNG images from reports_dict
         if 'Numerical Feature Univariate Score' in reports_dict:
@@ -150,13 +150,13 @@ class MachineLearningAgent:
             numerical_image = Image.open(BytesIO(numerical_image_data))
             axs[1].imshow(numerical_image)
             axs[1].axis('off')  # Hide axes for the image
-            axs[1].set_title("Numerical Feature Univariate Score", fontsize=10, fontproperties=self.fontProps)
+            axs[1].set_title("数值特征单变量分数", fontsize=14, fontproperties=self.fontProps)
         if 'Categorical Feature Univariate Score' in reports_dict:
             categorical_image_data = base64.b64decode(reports_dict['Categorical Feature Univariate Score'])
             categorical_image = Image.open(BytesIO(categorical_image_data))
             axs[2].imshow(categorical_image)
             axs[2].axis('off')  # Hide axes for the image
-            axs[2].set_title("Categorical Feature Univariate Score", fontsize=10, fontproperties=self.fontProps)
+            axs[2].set_title("类别特征单变量分数", fontsize=14, fontproperties=self.fontProps)
 
         # Save the complete report as a PDF
         report_path = out_directory + os.sep + f'Report - {model}.pdf'

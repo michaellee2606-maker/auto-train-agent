@@ -1,12 +1,19 @@
 # auto-train-agent
 
-<p>构建自动训练模型的智能体</p>
+<h3>UI</h3>
+<img width="600" height="400" alt="image" src="https://github.com/user-attachments/assets/bd316fe8-4e0c-44d3-8de9-9990f7afa39e" />
+
+<h3>报表内容</h3>
+<img width="600" height="893" alt="image" src="https://github.com/user-attachments/assets/1ec8c673-2a2f-49cf-8d8e-8896a80c08b6" />
+
+---
+
 <p>技术栈
   <ul>
-    <li>语言: python</li>
     <li>前端页面框架: gradio</li>
     <li>智能体框架: langChain</li>
-    <li>模型: Qwen/Qwen2.5-7B-Instruct</li>
+    <li>语言模型: Qwen/Qwen2.5-7B-Instruct</li>
+    <li>多模态模型: moonshotai/Kimi-K2.5</li>
   </ul>
 </p>
 <p>项目启动步骤

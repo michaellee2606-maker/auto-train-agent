@@ -4,11 +4,12 @@ import numpy as np
 import pandas as pd
 from imblearn.over_sampling import RandomOverSampler
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import KBinsDiscretizer, OrdinalEncoder
+# from sklearn.preprocessing import KBinsDiscretizer, OrdinalEncoder
+from sklearn.preprocessing import OrdinalEncoder
 from sklearn.feature_selection import SelectPercentile, f_classif, chi2
 from sklearn.pipeline import Pipeline
-from sklearn.ensemble import GradientBoostingClassifier
-from mlxtend.feature_selection import ExhaustiveFeatureSelector as EFS
+# from sklearn.ensemble import GradientBoostingClassifier
+# from mlxtend.feature_selection import ExhaustiveFeatureSelector as EFS
 
 class DataAnalysisAgent:
     def __init__(self, model_id, token, class_column, positive_class, negative_class):
@@ -51,7 +52,7 @@ class DataAnalysisAgent:
         if train_flag:
             numerical_transformer = Pipeline(
                 steps=[
-                    ('discretizer', KBinsDiscretizer(n_bins=10, encode='ordinal', strategy='quantile')),
+                    # ('discretizer', KBinsDiscretizer(n_bins=10, encode='ordinal', strategy='quantile')),
                     ('numerical_selector', SelectPercentile(score_func=f_classif, percentile=80))
                 ]
             )
@@ -71,27 +72,30 @@ class DataAnalysisAgent:
             
             features_processed = self.preprocessor.fit_transform(data, classes)
 
+            self.name_of_features_selected = self.preprocessor.get_feature_names_out()
+
             self.logger.info(f"Features which is selected by univariate selection: {self.preprocessor.get_feature_names_out()}")
 
-            classifier = GradientBoostingClassifier()
+            # classifier = GradientBoostingClassifier()
 
-            efs = EFS(classifier,
-                    min_features=8,
-                    max_features=15,
-                    scoring='f1',
-                    print_progress=True,
-                    n_jobs=-1,
-                    cv=5)
+            # efs = EFS(classifier,
+            #         min_features=8,
+            #         max_features=15,
+            #         scoring='f1',
+            #         print_progress=True,
+            #         n_jobs=-1,
+            #         cv=5)
 
-            efs = efs.fit(features_processed, classes)
+            # efs = efs.fit(features_processed, classes)
 
-            self.name_of_features_selected = [self.preprocessor.get_feature_names_out()[i] for i in efs.best_idx_]
+            # self.name_of_features_selected = [self.preprocessor.get_feature_names_out()[i] for i in efs.best_idx_]
 
-            self.logger.info(f"Features which is selected by ExhaustiveFeatureSelector: {self.name_of_features_selected}")
+            # self.logger.info(f"Features which is selected by ExhaustiveFeatureSelector: {self.name_of_features_selected}")
 
-            return features_processed[:,efs.best_idx_], self.name_of_features_selected
+            return features_processed, self.name_of_features_selected
         else:
-            numerical_transformers, categorical_transformers = self.get_transfomers()
+            # numerical_transformers, categorical_transformers = self.get_transfomers()
+            categorical_transformers = self.get_categorical_transformers()
 
             merged_columns = np.hstack((numerical_features.values, categorical_features.values))
 
@@ -100,7 +104,7 @@ class DataAnalysisAgent:
             # Apply numerical transformations based on training transformers
             for numerical_feature in numerical_features:
                 transformed_columns.append('num__' + numerical_feature)
-                data[numerical_feature] = np.digitize(data[numerical_feature], numerical_transformers[numerical_feature])
+                # data[numerical_feature] = np.digitize(data[numerical_feature], numerical_transformers[numerical_feature])
 
             # Apply categorical transformations based on training transformers
             for categorical_feature in categorical_features:

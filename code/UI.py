@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 model_id = os.environ.get("model_id")
+multimodel_model_id = os.environ.get("multimodel_model_id")
 token = os.environ.get("token")
 out_directory = "." + os.sep + os.environ.get("out_directory")
 font_path = os.environ.get("font_path")
@@ -14,7 +15,7 @@ positive_class= os.environ.get("positive_class")
 negative_class= os.environ.get("negative_class")
 
 # Initialize AutoTrain agent
-autoTrain = AutoTrain(model_id, token, font_path, class_column, positive_class, negative_class)
+autoTrain = AutoTrain(model_id, multimodel_model_id, token, font_path, class_column, positive_class, negative_class)
 
 def generate(train_data, validate_data):
     if train_data is None:

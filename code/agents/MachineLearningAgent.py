@@ -120,7 +120,7 @@ class MachineLearningAgent:
 
         self.best_xgboost_model.download_mojo(path=out_directory, get_genmodel_jar=True)
 
-    def generate_report(self, out_directory: str):
+    def generate_report(self, out_directory: str, reports_dict):
         confusion_matrix = self.confusion_matrix
         model = self.best_xgboost_model.model_id
 

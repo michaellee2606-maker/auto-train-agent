@@ -3,33 +3,53 @@ import logging
 import numpy as np
 import pandas as pd
 from imblearn.over_sampling import RandomOverSampler
-from sklearn.compose import ColumnTransformer
 # from sklearn.preprocessing import KBinsDiscretizer, OrdinalEncoder
 from sklearn.preprocessing import OrdinalEncoder
-from sklearn.feature_selection import SelectPercentile, f_classif, chi2
+from utils.FeatureSelector import FeatureSelector
+from sklearn.feature_selection import f_classif, chi2
 from sklearn.pipeline import Pipeline
 # from sklearn.ensemble import GradientBoostingClassifier
 # from mlxtend.feature_selection import ExhaustiveFeatureSelector as EFS
 
 class DataAnalysisAgent:
-    def __init__(self, model_id, token, class_column, positive_class, negative_class):
+    def __init__(self, feature_selection_analysis_model_id, feature_selection_format_model_id, token, 
+                 class_column, positive_class, negative_class):
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
+
+        self.feature_selection_analysis_model_id = feature_selection_analysis_model_id
+        self.feature_selection_format_model_id = feature_selection_format_model_id
+        self.token = token
+
         self.class_column = class_column
         self.positive_class = positive_class
         self.negative_class = negative_class
-        self.preprocessor = None
+
+        self.reports_dict = {}
+
+        self.numerical_selector = FeatureSelector(
+            feature_selection_analysis_model_id = feature_selection_analysis_model_id, 
+            feature_selection_format_model_id = feature_selection_format_model_id, 
+            token = token, feature_type='numerical', score_func=f_classif, reports_dict=self.reports_dict)
+        self.categorical_selector = FeatureSelector(
+            feature_selection_analysis_model_id = feature_selection_analysis_model_id, 
+            feature_selection_format_model_id = feature_selection_format_model_id, 
+            token = token, feature_type='categorical', score_func=chi2, reports_dict=self.reports_dict)
+        
+        self.numerical_transformer = None
+        self.categorical_transformer = None
+
         self.name_of_features_selected = None
 
     def get_numerical_transformers(self) -> dict:
-        bin_edges = self.preprocessor.named_transformers_['num'].named_steps['discretizer'].bin_edges_
-        features = self.preprocessor.named_transformers_['num'].named_steps['discretizer'].feature_names_in_
+        bin_edges = self.numerical_transformer.named_steps['discretizer'].bin_edges_
+        features = self.numerical_transformer.named_steps['discretizer'].feature_names_in_
 
         return dict(zip(features, bin_edges))
 
     def get_categorical_transformers(self) -> dict:
-        encodings = self.preprocessor.named_transformers_['cat'].named_steps['encoder'].categories_
-        features = self.preprocessor.named_transformers_['cat'].named_steps['encoder'].feature_names_in_
+        encodings = self.categorical_transformer.named_steps['encoder'].categories_
+        features = self.categorical_transformer.named_steps['encoder'].feature_names_in_
 
         encodings_list = []
 
@@ -50,31 +70,27 @@ class DataAnalysisAgent:
         categorical_features = data.select_dtypes(include=['object', 'category']).columns
 
         if train_flag:
-            numerical_transformer = Pipeline(
+            self.numerical_transformer = Pipeline(
                 steps=[
                     # ('discretizer', KBinsDiscretizer(n_bins=10, encode='ordinal', strategy='quantile')),
-                    ('numerical_selector', SelectPercentile(score_func=f_classif, percentile=80))
+                    ('numerical_selector', self.numerical_selector)
                 ]
             )
 
-            categorical_transformer = Pipeline(
+            self.categorical_transformer = Pipeline(
                 steps=[
                     ('encoder', OrdinalEncoder()),
-                    ('categorical_selector', SelectPercentile(score_func=chi2, percentile=80))
+                    ('categorical_selector', self.categorical_selector)
                 ]
             )
         
-            self.preprocessor = ColumnTransformer(
-                transformers=[
-                    ('num', numerical_transformer, numerical_features),
-                    ('cat', categorical_transformer, categorical_features)
-                ])
-            
-            features_processed = self.preprocessor.fit_transform(data, classes)
+            numerical_features_processed = self.numerical_transformer.fit_transform(data[numerical_features], classes)
+            categorical_features_processed = self.categorical_transformer.fit_transform(data[categorical_features], classes)
 
-            self.name_of_features_selected = self.preprocessor.get_feature_names_out()
+            features_processed = np.hstack((numerical_features_processed, categorical_features_processed))
+            self.name_of_features_selected = np.hstack((self.numerical_transformer.get_feature_names_out(), self.categorical_transformer.get_feature_names_out()))
 
-            self.logger.info(f"Features which is selected by univariate selection: {self.preprocessor.get_feature_names_out()}")
+            self.logger.info(f"Features which is selected by univariate selection: {self.name_of_features_selected}")
 
             # classifier = GradientBoostingClassifier()
 
@@ -97,22 +113,13 @@ class DataAnalysisAgent:
             # numerical_transformers, categorical_transformers = self.get_transfomers()
             categorical_transformers = self.get_categorical_transformers()
 
-            merged_columns = np.hstack((numerical_features.values, categorical_features.values))
-
-            transformed_columns = []
-
             # Apply numerical transformations based on training transformers
-            for numerical_feature in numerical_features:
-                transformed_columns.append('num__' + numerical_feature)
-                # data[numerical_feature] = np.digitize(data[numerical_feature], numerical_transformers[numerical_feature])
+            # for numerical_feature in numerical_features:
+            #     data[numerical_feature] = np.digitize(data[numerical_feature], numerical_transformers[numerical_feature])
 
             # Apply categorical transformations based on training transformers
             for categorical_feature in categorical_features:
-                transformed_columns.append('cat__' + categorical_feature)
                 data[categorical_feature] = data[categorical_feature].map(categorical_transformers[categorical_feature])
-
-            # Rename columns to match transformed feature names
-            data.rename(columns=dict(zip(merged_columns, transformed_columns)), inplace=True)
 
             return data[self.name_of_features_selected], self.name_of_features_selected
 
@@ -143,7 +150,7 @@ class DataAnalysisAgent:
         return train_features, validate_features
 
     # Analyze the training and validation data, extract features, and save to new CSV files.
-    def analyze(self, train_data_path: str, validate_data_path: str) -> tuple[str, str]:
+    def analyze(self, train_data_path: str, validate_data_path: str):
         train_features_path = os.path.dirname(train_data_path) + os.sep + "train_features.csv"
         validate_features_path = os.path.dirname(validate_data_path) + os.sep + "validate_features.csv"
 
@@ -155,4 +162,4 @@ class DataAnalysisAgent:
         train_features.to_csv(train_features_path, index=False)
         validate_features.to_csv(validate_features_path, index=False)
 
-        return train_features_path, validate_features_path
+        return train_features_path, validate_features_path, self.reports_dict

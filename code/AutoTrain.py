@@ -3,18 +3,18 @@ from agents.DataAnalysisAgent import DataAnalysisAgent
 from agents.MachineLearningAgent import MachineLearningAgent
 
 class AutoTrain:
-    def __init__(self, model_id, token, font_path, class_column, positive_class, negative_class):        
+    def __init__(self, model_id, multimodel_model_id, token, font_path, class_column, positive_class, negative_class):        
         # Initialize H2O
         h2o.init()
 
-        self.dataAnalysisAgent = DataAnalysisAgent(model_id, token, class_column, positive_class, negative_class)
+        self.dataAnalysisAgent = DataAnalysisAgent(multimodel_model_id, model_id, token, class_column, positive_class, negative_class)
         self.machineLearningAgent = MachineLearningAgent(model_id, token, font_path, class_column)
 
     def start(self, train_data_path: str, validate_data_path: str, out_directory: str):
         # Data analysis and feature extraction
-        train_feature_path, validate_feature_path = self.dataAnalysisAgent.analyze(train_data_path, validate_data_path)
+        train_feature_path, validate_feature_path, reports_dict = self.dataAnalysisAgent.analyze(train_data_path, validate_data_path)
         # Machine learning model training
         self.machineLearningAgent.train(train_feature_path, validate_feature_path, out_directory)
         # Generate report
-        self.machineLearningAgent.generate_report(out_directory)
+        self.machineLearningAgent.generate_report(out_directory, reports_dict)
    

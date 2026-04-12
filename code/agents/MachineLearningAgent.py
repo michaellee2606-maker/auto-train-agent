@@ -1,13 +1,8 @@
-import os
 import h2o
-import base64
 import logging
-from PIL import Image
-from io import BytesIO
+import pandas as pd
 from h2o.estimators import H2OXGBoostEstimator
 from h2o.grid.grid_search import H2OGridSearch
-import matplotlib.pyplot as plt
-from matplotlib import font_manager as fm
 from langfuse.langchain import CallbackHandler
 from langchain.agents import create_agent
 from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
@@ -15,11 +10,9 @@ from responseModels.XGBoostResponse import XGBoostResponse
 
 
 class MachineLearningAgent:
-    def __init__(self, model_id, token, font_path, class_column):
+    def __init__(self, model_id, token, class_column):
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
-        self.fontProps = fm.FontProperties(fname=font_path)
-        plt.rcParams['font.family'] = self.fontProps.get_name()
         self.class_column = class_column
         self.best_xgboost_model = None
         self.max_f2_score = 0
@@ -56,7 +49,7 @@ class MachineLearningAgent:
         return agent
 
     
-    def train(self, train_feature_path: str, validate_feature_path: str, out_directory: str):
+    def train(self, train_feature_path: str, validate_feature_path: str, out_directory: str) -> tuple[str,pd.DataFrame]:
         train_features = h2o.import_file(train_feature_path)
         train_features[self.class_column] = train_features[self.class_column].asfactor()
         validate_features = h2o.import_file(validate_feature_path)
@@ -123,42 +116,4 @@ class MachineLearningAgent:
 
         self.best_xgboost_model.download_mojo(path=out_directory, get_genmodel_jar=True)
 
-    def generate_report(self, out_directory: str, reports_dict):
-        confusion_matrix = self.confusion_matrix
-        model = self.best_xgboost_model.model_id
-
-        # Create a figure with subplots to accommodate the confusion matrix and images
-        fig, axs = plt.subplots(3, 1, figsize=(8, 12))  # 3 rows: confusion matrix + 2 images
-        axs[0].axis('tight')
-        axs[0].axis('off')
-        axs[0].table(cellText=confusion_matrix.values, colLabels=confusion_matrix.columns, 
-                     loc='center', colLoc='center', cellLoc='center')
-
-        # Add a title for the table
-        axs[0].set_title('混淆矩阵', fontsize=14, fontweight='bold', fontproperties=self.fontProps)
-
-        # Calculate Precision and Recall
-        precision = confusion_matrix.iloc[1, 2] / (confusion_matrix.iloc[0, 2] + confusion_matrix.iloc[1, 2])
-        recall = confusion_matrix.iloc[1, 2] / (confusion_matrix.iloc[1, 1] + confusion_matrix.iloc[1, 2])
-
-        # Adjust the position of the text to be closer to the confusion matrix
-        fig.text(0.5, 0.7, f'召回率: {recall:.2f}, 精确率: {precision:.2f}', wrap=True, horizontalalignment='center', fontsize=8, fontproperties=self.fontProps)
-
-        # Decode and add the PNG images from reports_dict
-        if 'Numerical Feature Univariate Score' in reports_dict:
-            numerical_image_data = base64.b64decode(reports_dict['Numerical Feature Univariate Score'])
-            numerical_image = Image.open(BytesIO(numerical_image_data))
-            axs[1].imshow(numerical_image)
-            axs[1].axis('off')  # Hide axes for the image
-            axs[1].set_title("数值特征单变量分数", fontsize=14, fontproperties=self.fontProps)
-        if 'Categorical Feature Univariate Score' in reports_dict:
-            categorical_image_data = base64.b64decode(reports_dict['Categorical Feature Univariate Score'])
-            categorical_image = Image.open(BytesIO(categorical_image_data))
-            axs[2].imshow(categorical_image)
-            axs[2].axis('off')  # Hide axes for the image
-            axs[2].set_title("类别特征单变量分数", fontsize=14, fontproperties=self.fontProps)
-
-        # Save the complete report as a PDF
-        report_path = out_directory + os.sep + f'Report - {model}.pdf'
-        plt.tight_layout()
-        plt.savefig(report_path)
+        return self.best_xgboost_model.model_id, self.confusion_matrix

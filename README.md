@@ -4,7 +4,7 @@
 <img width="600" height="400" alt="image" src="https://github.com/user-attachments/assets/bd316fe8-4e0c-44d3-8de9-9990f7afa39e" />
 
 <h3>报表内容</h3>
-<img width="600" height="893" alt="image" src="https://github.com/user-attachments/assets/1ec8c673-2a2f-49cf-8d8e-8896a80c08b6" />
+<img width="600" height="887" alt="image" src="https://github.com/user-attachments/assets/f481aaa9-ccfc-4f50-96d0-e62fea3d98f0" />
 
 ---
 

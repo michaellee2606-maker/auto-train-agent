@@ -49,7 +49,7 @@ class MachineLearningAgent:
         return agent
 
     
-    def train(self, train_feature_path: str, validate_feature_path: str, out_directory: str) -> tuple[str,pd.DataFrame]:
+    def train(self, train_feature_path: str, validate_feature_path: str, out_directory: str):
         train_features = h2o.import_file(train_feature_path)
         train_features[self.class_column] = train_features[self.class_column].asfactor()
         validate_features = h2o.import_file(validate_feature_path)
@@ -116,4 +116,4 @@ class MachineLearningAgent:
 
         self.best_xgboost_model.download_mojo(path=out_directory, get_genmodel_jar=True)
 
-        return self.best_xgboost_model.model_id, self.confusion_matrix
+        return self.best_xgboost_model.model_id, self.confusion_matrix, xgboost_response_json

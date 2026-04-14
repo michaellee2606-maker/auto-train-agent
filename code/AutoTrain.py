@@ -16,6 +16,6 @@ class AutoTrain:
         # Data analysis and feature extraction
         train_feature_path, validate_feature_path, reports_dict = self.dataAnalysisAgent.analyze(train_data_path, validate_data_path)
         # Machine learning model training
-        model_id_trained, confusion_matrix = self.machineLearningAgent.train(train_feature_path, validate_feature_path, out_directory)
+        model_id_trained, confusion_matrix, xgboost_response_json = self.machineLearningAgent.train(train_feature_path, validate_feature_path, out_directory)
         # Generate report
-        self.reportAnalysisAgent.generate_report(model_id_trained, confusion_matrix, out_directory, reports_dict)
+        report_analysis_result = self.reportAnalysisAgent.generate_report(model_id_trained, confusion_matrix, xgboost_response_json, out_directory, reports_dict)

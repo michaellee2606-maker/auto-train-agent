@@ -107,7 +107,7 @@ class FeatureSelector(TransformerMixin, BaseEstimator):
             "content": [
                 {
                     "type": "image_url",
-                    "image_url": {"url": f"data:image/png;base64, {base64_feature_univariate_score}"},
+                    "image_url": {"url": f"data:image/jpeg;base64, {base64_feature_univariate_score}"},
                 },
                 {"type": "text", "text": "according to the picture, give me a reasonable number of features chosen. The result which is returned is an array of index of features chosen."}
             ]

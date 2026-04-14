@@ -1,4 +1,6 @@
 import os
+import io
+import pandas as pd
 import base64
 import logging
 from PIL import Image
@@ -23,7 +25,7 @@ class ReportAnalysisAgent:
         llm = HuggingFaceEndpoint(
             task='conversational',
             repo_id=model_id,
-            max_new_tokens=1280,
+            max_new_tokens=12800,
             temperature=0.5,
             huggingfacehub_api_token=token,
             provider="auto",
@@ -35,14 +37,15 @@ class ReportAnalysisAgent:
             model=chat,
             tools=[],
             system_prompt="""
-                You are a professional machine learning assistant.
+                You are a professional report analysis assistant. 
+                Proficient at analyse confusion metrics, feature importance grid, hyperparameters and search criteria of XGBoost algorithms of H2OGridSearch API.
                 The business problem is to predict the class of customers based on the customer data. This is a binary classification problem. 
             """
         )
 
         return agent
 
-    def generate_report(self, model_id_trained: str, confusion_matrix: str, out_directory: str, reports_dict):
+    def generate_report(self, model_id_trained:str, confusion_matrix:pd.DataFrame, xgboost_response_json:str, out_directory:str, reports_dict):
         # Create a figure with subplots to accommodate the confusion matrix and images
         fig, axs = plt.subplots(3, 1, figsize=(8, 12))  # 3 rows: confusion matrix + 2 images
         axs[0].axis('tight')
@@ -78,3 +81,33 @@ class ReportAnalysisAgent:
         report_path = out_directory + os.sep + f'Report - {model_id_trained}.pdf'
         plt.tight_layout()
         plt.savefig(report_path)
+
+        buf = io.BytesIO()
+        plt.savefig(buf, format="jpeg")
+        plt.close()
+
+        # Retrieve the byte data from the stream and encode it to base64
+        # Use .decode('utf-8') to convert the bytes object into a standard string
+        base64_report = base64.b64encode(buf.getvalue()).decode('utf-8')
+        buf.close()
+
+        # From base64 data
+        message = {
+            "role": "user",
+            "content": [
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:image/jpeg;base64, {base64_report}"},
+                },
+                {"type": "text", "text": f"According to the report as shown in the picture and the parameters of H2OGridSearch API which is {xgboost_response_json}, give me some reasonable advices of feature engineering and machine learning to improve the recall and precision metrics in the next iteration"}
+            ]
+        }
+
+        report_analysis_result = self.agent.invoke(
+            {"messages": [message]}, 
+            config={"callbacks": [self.langfuse_handler]}
+        )
+
+        self.logger.info(f"Report analysis result is : {report_analysis_result['messages'][-1].content}")
+
+        return report_analysis_result['messages'][-1].content
